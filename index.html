@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v3.0.1/dist/mini-default.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+function getLocation() {
+    var x = document.getElementById("gps");
+    checkStore();
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        x.innerHTML = "Geolocation is not supported by this browser.";
+    }
+}
+function showPosition(position) {
+    var x = document.getElementById("gps");
+//    x.innerHTML = "Latitude: " + position.coords.latitude + 
+//    "<br>Longitude: " + position.coords.longitude; 
+    storeEvent(position.coords.latitude, position.coords.longitude);
+    showEvents();
+}
+function storeEvent(lat,lon) {
+  var ts = new Date().getTime();
+  var memo = document.getElementById("memo").value;
+  var event = {timestamp:ts, memo:memo, lat:lat, lon:lon};
+  var keycnt = window.localStorage.getItem('keycnt');
+  var key = "event" + keycnt;
+  window.localStorage.setItem(key, JSON.stringify(event));
+  keycnt++;
+  window.localStorage.setItem('keycnt', keycnt);
+}
+
+function checkStore() {
+  var msg = document.getElementById("msg");
+  if (typeof(Storage) !== "undefined") {
+    var keycnt = initStore();
+    //  msg.innerHTML = "Events recorded: " + keycnt;
+  }
+  else {
+    msg.innerHTML = "no local store ";
+  }
+}
+function initStore() {
+  var keycnt = window.localStorage.getItem('keycnt');
+  if (keycnt === null || keycnt.length === 0) {
+    window.localStorage.clear();
+    window.localStorage.setItem('keycnt',0);
+    keycnt = 0;
+  }
+  else {
+    if (keycnt > 5) {
+      window.localStorage.clear();
+      window.localStorage.setItem('keycnt',0);
+      keycnt = 0;
+    }
+  }
+  return keycnt;
+}
+function showEvents() {
+  var history = document.getElementById("history");
+  var keycnt = window.localStorage.getItem('keycnt');
+  var historytext = "";
+  for (let i=0; i<keycnt; i++) {
+    var key = "event" + i;
+    var json = window.localStorage.getItem(key);
+    historytext = historytext + json + "<BR>";
+  }
+  history.innerHTML = historytext;
+  var msg=document.getElementById("msg");
+  msg.innerHTML = "Events: " +  keycnt;
+}
+
+</script>
+</head>
+<body>
+<h1>myGPS</h1>
+<div>
+<input type="text" placeholder="memo" maxlength=80 size=20 id="memo">
+<button id="but1" onclick="getLocation()">Save</button>
+<br>
+<!---- <button id="but2" onclick="showEvents()">Show</button>  ---->
+</div>
+<div>
+<p id="gps"></p>
+</div>
+<div>
+<p id="msg">myGPS</p>
+</div>
+<div>
+<p id="history"></p>
+</div>
+</body>
+</html>
