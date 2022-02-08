@@ -8,5 +8,5 @@ TOD
 - loc/lon to change to google map pointer (DONE)
 - export to CSV/email 
 - server push?
-
+- might be wrap it as an Android webapp hence no need to browser it online to start with
 
