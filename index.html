@@ -9,10 +9,15 @@ function getLocation() {
     var x = document.getElementById("gps");
     checkStore();
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition);
+        navigator.geolocation.getCurrentPosition(showPosition, noLocation);
     } else {
         x.innerHTML = "Geolocation is not supported by this browser.";
     }
+}
+function noLocation() {
+  alert("no location found");
+  storeEvent(0,0);
+  showEvents();
 }
 function showPosition(position) {
     var x = document.getElementById("gps");
@@ -39,7 +44,7 @@ function checkStore() {
   var msg = document.getElementById("msg");
   if (typeof(Storage) !== "undefined") {
     var keycnt = initStore();
-    //  msg.innerHTML = "Events recorded: " + keycnt;
+    msg.innerHTML = "Events recorded: " + keycnt;
   }
   else {
     msg.innerHTML = "no local store ";
@@ -53,7 +58,7 @@ function initStore() {
     keycnt = 0;
   }
   else {
-    if (keycnt > 5) {
+    if (keycnt > 999) {
       window.localStorage.clear();
       window.localStorage.setItem('keycnt',0);
       keycnt = 0;
@@ -62,6 +67,7 @@ function initStore() {
   return keycnt;
 }
 function showEvents() {
+  var cb = document.getElementById("clipboard");
   var history = document.getElementById("history");
   var keycnt = window.localStorage.getItem('keycnt');
   var historytext = "";
@@ -75,6 +81,8 @@ function showEvents() {
     var memo = ev.memo;
     var line = `${ts} <a href="https://map.google.com/?q=${lat},${lon}" target="_blank">${memo}</a>`
     historytext = historytext + line + "<BR>";
+    var line1 = `${ts},"${memo}",${lat},${lon}\n`;
+    cb.textContent = cb.value + line1;
   }
   history.innerHTML = historytext;
   var msg=document.getElementById("msg");
@@ -90,16 +98,30 @@ function dateTime(date) {
     var seg = ("0" + (date.getSeconds())).slice(-2);
     return year + "-" + month + "-" + day + " " + hour + ":" +  min + ":" + seg;
 }
-
+function copy2clipboard() {
+  var cb = document.getElementById("clipboard");
+  navigator.clipboard.writeText(cb.value);
+  cb.textContent = "";
+  window.localStorage.clear();
+  window.localStorage.setItem('keycnt',0);
+  var history = document.getElementById("history");
+  history.innerHTML = "";
+  alert("events copied to clipboard; cleared");
+  var msg=document.getElementById("msg");
+  msg.innerHTML = "Events: 0";
+}
 </script>
 </head>
-<body>
+<body onload="checkStore()">
 <h1>myGPS</h1>
 <div>
 <input type="text" placeholder="memo" maxlength=80 size=20 id="memo">
 <button id="but1" onclick="getLocation()">Save</button>
 <br>
 <!---- <button id="but2" onclick="showEvents()">Show</button>  ---->
+</div>
+<div>
+<button id="copyBut" onclick="copy2clipboard()">Archive</button>
 </div>
 <div>
 <p id="gps"></p>
@@ -110,5 +132,7 @@ function dateTime(date) {
 <div>
 <p id="history"></p>
 </div>
+<textarea id="clipboard" name="clipboard" style="display:none;" rows="99" cols="80"></textarea>
+
 </body>
 </html>
